@@ -1,6 +1,6 @@
-name: NovaTNTRun
-main: net.novauniverse.games.tntrun.NovaTNTRun
-description: Novauniverse TNTRun
+name: NovaTNTTag
+main: net.novauniverse.games.tnttag.NovaTNTTag
+description: Novauniverse TNTTag
 version: 1.0
 depend: [NovaCore, NovaCoreGameEngine]
 softdepend: [NovaGamesTarget]

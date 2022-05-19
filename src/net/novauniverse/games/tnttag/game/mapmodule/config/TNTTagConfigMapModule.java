@@ -6,6 +6,7 @@ import net.zeeraa.novacore.spigot.gameengine.module.modules.game.map.mapmodule.M
 
 public class TNTTagConfigMapModule extends MapModule {
 	private int roundTime;
+	private int roundWaitingTime;
 	private int toTagDivision;
 
 	public TNTTagConfigMapModule(JSONObject json) {
@@ -15,12 +16,22 @@ public class TNTTagConfigMapModule extends MapModule {
 		} else {
 			this.roundTime = 60 * 2;
 		}
+		
+		if (json.has("round_waiting_time")) {
+			this.roundWaitingTime = json.getInt("round_waiting_time");
+		} else {
+			this.roundWaitingTime = 10;
+		}
 
 		if (json.has("to_tag_division")) {
 			this.toTagDivision = json.getInt("to_tag_division");
 		} else {
 			this.toTagDivision = 3;
 		}
+	}
+	
+	public int getRoundWaitingTime() {
+		return roundWaitingTime;
 	}
 
 	public int getRoundTime() {

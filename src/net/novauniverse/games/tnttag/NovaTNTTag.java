@@ -93,7 +93,7 @@ public class NovaTNTTag extends JavaPlugin implements Listener {
 			return;
 		}
 
-		MapModuleManager.addMapModule("tnttag_config", TNTTagConfigMapModule.class);
+		MapModuleManager.addMapModule("tnttag.config", TNTTagConfigMapModule.class);
 
 		// Enable required modules
 		ModuleManager.enable(GameManager.class);
