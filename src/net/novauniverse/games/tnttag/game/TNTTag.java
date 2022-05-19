@@ -29,6 +29,7 @@ import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import net.novauniverse.games.tnttag.NovaTNTTag;
+import net.novauniverse.games.tnttag.game.mapmodule.config.TNTTagConfigMapModule;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.spigot.NovaCore;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependantUtils;
@@ -45,9 +46,11 @@ public class TNTTag extends MapGame implements Listener {
 
 	private List<UUID> taggedPlayers;
 	private Map<Player, TNTPrimed> playerTNT;
-	
+
 	private boolean roundActive;
 	private int roundTimer;
+	
+	private TNTTagConfigMapModule config;
 
 	public TNTTag() {
 		super(NovaTNTTag.getInstance());
@@ -56,15 +59,17 @@ public class TNTTag extends MapGame implements Listener {
 		this.ended = false;
 		this.taggedPlayers = new ArrayList<UUID>();
 		this.playerTNT = new HashMap<Player, TNTPrimed>();
-		
+
 		this.roundActive = false;
 		this.roundTimer = 0;
+		
+		this.config = null;
 	}
-	
+
 	public boolean isRoundActive() {
 		return roundActive;
 	}
-	
+
 	public int getRoundTimer() {
 		return roundTimer;
 	}
@@ -118,6 +123,31 @@ public class TNTTag extends MapGame implements Listener {
 	public boolean canAttack(LivingEntity attacker, LivingEntity target) {
 		return true;
 	}
+	
+	public TNTTagConfigMapModule getConfig() {
+		return config;
+	}
+
+	public void roundStart() {
+		if (roundActive) {
+			return;
+		}
+
+		List<Player> onlinePlayers = new ArrayList<>();
+		Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+			if (players.contains(player.getUniqueId())) {
+				onlinePlayers.add(player);
+			}
+		});
+
+		int toTag = 0;
+		if (onlinePlayers.size() >= 2) {
+			toTag = (int) Math.ceil(onlinePlayers.size() / 3);
+			if (toTag == 0) {
+				toTag = 1;
+			}
+		}
+	}
 
 	public void tpToSpectator(Player player) {
 		NovaCore.getInstance().getVersionIndependentUtils().resetEntityMaxHealth(player);
@@ -127,9 +157,9 @@ public class TNTTag extends MapGame implements Listener {
 			player.teleport(getActiveMap().getSpectatorLocation());
 		}
 	}
-	
+
 	public void spawnPlayerTNT(Player player) {
-		if(playerTNT.containsKey(player)) {
+		if (playerTNT.containsKey(player)) {
 			return;
 		}
 		TNTPrimed tnt = player.getWorld().spawn(player.getLocation(), TNTPrimed.class);
@@ -168,6 +198,15 @@ public class TNTTag extends MapGame implements Listener {
 			return;
 		}
 
+		TNTTagConfigMapModule cfg = (TNTTagConfigMapModule) this.getActiveMap().getMapData().getMapModule(TNTTagConfigMapModule.class);
+		if (cfg == null) {
+			Log.fatal("TNTTag", "The map " + this.getActiveMap().getMapData().getMapName() + " has no tnttag config map module");
+			Bukkit.getServer().broadcastMessage(ChatColor.RED + "TNTRun has run into an uncorrectable error and has to be ended");
+			this.endGame(GameEndReason.ERROR);
+			return;
+		}
+		this.config = cfg;
+		
 		world.setDifficulty(Difficulty.PEACEFUL);
 
 		List<Player> toTeleport = new ArrayList<Player>();
@@ -241,7 +280,7 @@ public class TNTTag extends MapGame implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerQuit(PlayerQuitEvent e) {
 		Player player = e.getPlayer();
-		if(taggedPlayers.contains(player.getUniqueId())) {
+		if (taggedPlayers.contains(player.getUniqueId())) {
 			spawnPlayerTNT(player);
 		}
 	}
@@ -249,12 +288,12 @@ public class TNTTag extends MapGame implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		Player player = e.getPlayer();
-		if(playerTNT.containsKey(player)) {
+		if (playerTNT.containsKey(player)) {
 			playerTNT.get(player).remove();
 			playerTNT.remove(player);
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onPlayerDropItem(PlayerDropItemEvent e) {
 		if (hasStarted()) {

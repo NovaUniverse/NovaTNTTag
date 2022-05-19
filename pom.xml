@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.novauniverse</groupId>
 	<artifactId>NovaTNTTag</artifactId>
-	<version>1.0.0-SNAOSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
