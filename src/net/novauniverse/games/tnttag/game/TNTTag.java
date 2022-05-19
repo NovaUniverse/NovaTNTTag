@@ -45,6 +45,9 @@ public class TNTTag extends MapGame implements Listener {
 
 	private List<UUID> taggedPlayers;
 	private Map<Player, TNTPrimed> playerTNT;
+	
+	private boolean roundActive;
+	private int roundTimer;
 
 	public TNTTag() {
 		super(NovaTNTTag.getInstance());
@@ -53,6 +56,17 @@ public class TNTTag extends MapGame implements Listener {
 		this.ended = false;
 		this.taggedPlayers = new ArrayList<UUID>();
 		this.playerTNT = new HashMap<Player, TNTPrimed>();
+		
+		this.roundActive = false;
+		this.roundTimer = 0;
+	}
+	
+	public boolean isRoundActive() {
+		return roundActive;
+	}
+	
+	public int getRoundTimer() {
+		return roundTimer;
 	}
 
 	@Override
