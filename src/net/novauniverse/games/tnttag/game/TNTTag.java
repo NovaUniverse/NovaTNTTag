@@ -26,6 +26,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -450,6 +451,13 @@ public class TNTTag extends MapGame implements Listener {
 					}
 				}
 			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void onEntityDamage(EntityDamageEvent e) {
+		if (e.getEntity() instanceof Player) {
+			e.setDamage(0);
 		}
 	}
 
