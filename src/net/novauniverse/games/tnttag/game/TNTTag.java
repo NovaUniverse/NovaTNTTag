@@ -15,6 +15,7 @@ import org.bukkit.Difficulty;
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
@@ -28,6 +29,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -44,13 +46,16 @@ import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.MapGame;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerEliminationReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerQuitEliminationAction;
+import net.zeeraa.novacore.spigot.module.ModuleManager;
+import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
 import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
+import xyz.xenondevs.particle.ParticleEffect;
 
 public class TNTTag extends MapGame implements Listener {
-	public static final double PLAYER_HEAD_TNT_Y_OFFSET = 2.5;
+	public static final double TNT_PARTICLE_OFFSET = 0.2;
 
 	private boolean started;
 	private boolean ended;
@@ -66,6 +71,12 @@ public class TNTTag extends MapGame implements Listener {
 
 	private Task timerTask;
 	private Task messageTask;
+	private Task particleTask;
+
+	private ItemStack tntHeadTextured;
+	private ItemStack tntHeadWhite;
+
+	private boolean tntTextureToUse;
 
 	public TNTTag() {
 		super(NovaTNTTag.getInstance());
@@ -75,10 +86,23 @@ public class TNTTag extends MapGame implements Listener {
 		this.taggedPlayers = new ArrayList<UUID>();
 		this.taggedBy = new HashMap<UUID, UUID>();
 
+		this.tntTextureToUse = false;
+
 		this.roundActive = false;
 		this.roundTimer = 0;
 
 		this.config = null;
+
+		ItemBuilder tntBuilder1 = ItemBuilder.getPlayerSkullWithBase64TextureAsBuilder(TNTTagTextures.TNT_TEXTURED);
+		tntBuilder1.setName(ChatColor.RED + "TNT");
+		tntBuilder1.addLore(ChatColor.RED + "RUUUUUUUUUN!!!!!!!!");
+
+		ItemBuilder tntBuilder2 = ItemBuilder.getPlayerSkullWithBase64TextureAsBuilder(TNTTagTextures.TNT_WHITE);
+		tntBuilder2.setName(ChatColor.RED + "TNT");
+		tntBuilder2.addLore(ChatColor.RED + "RUUUUUUUUUN!!!!!!!!");
+
+		tntHeadTextured = tntBuilder1.build();
+		tntHeadWhite = tntBuilder2.build();
 
 		this.timerTask = new SimpleTask(getPlugin(), new Runnable() {
 			@Override
@@ -100,17 +124,34 @@ public class TNTTag extends MapGame implements Listener {
 		this.messageTask = new SimpleTask(getPlugin(), new Runnable() {
 			@Override
 			public void run() {
+				tntTextureToUse = !tntTextureToUse;
 				Bukkit.getServer().getOnlinePlayers().forEach(player -> {
 					if (players.contains(player.getUniqueId())) {
 						if (taggedPlayers.contains(player.getUniqueId())) {
+							player.getInventory().setHelmet(tntTextureToUse ? tntHeadTextured.clone() : tntHeadWhite.clone());
+
 							VersionIndependantUtils.get().sendActionBarMessage(player, ChatColor.RED + TextUtils.ICON_WARNING + " Tagged " + TextUtils.ICON_WARNING);
 						} else {
 							VersionIndependantUtils.get().sendActionBarMessage(player, ChatColor.GREEN + "Safe");
+							player.getInventory().setHelmet(ItemBuilder.AIR);
 						}
 					}
 				});
 			}
 		}, 10L);
+
+		this.particleTask = new SimpleTask(getPlugin(), new Runnable() {
+			@Override
+			public void run() {
+				taggedPlayers.forEach(uuid -> {
+					Player player = Bukkit.getServer().getPlayer(uuid);
+					if (player != null) {
+						Location location = player.getLocation().clone().add(0, player.getEyeHeight(false) + TNT_PARTICLE_OFFSET, 0);
+						ParticleEffect.SMOKE_NORMAL.display(location);
+					}
+				});
+			}
+		}, 3L);
 	}
 
 	public boolean isRoundActive() {
@@ -278,8 +319,6 @@ public class TNTTag extends MapGame implements Listener {
 			return;
 		}
 
-		player.getInventory().setHelmet(ItemBuilder.AIR);
-
 		taggedBy.remove(player.getUniqueId());
 
 		taggedPlayers.remove(player.getUniqueId());
@@ -296,11 +335,6 @@ public class TNTTag extends MapGame implements Listener {
 		if (attacker != null) {
 			taggedBy.put(player.getUniqueId(), attacker.getUniqueId());
 		}
-
-		ItemBuilder tntBuilder = ItemBuilder.getPlayerSkullWithBase64TextureAsBuilder(TNTTagTextures.TNT);
-		tntBuilder.setName(ChatColor.RED + "TNT");
-		tntBuilder.addLore(ChatColor.RED + "RUUUUUUUUUN!!!!!!!!");
-		player.getInventory().setHelmet(tntBuilder.build());
 
 		taggedPlayers.add(player.getUniqueId());
 		player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You have been tagged");
@@ -334,6 +368,13 @@ public class TNTTag extends MapGame implements Listener {
 		player.setGameMode(GameMode.SURVIVAL);
 		player.teleport(location);
 
+		if (getConfig().isEnableTrackers()) {
+			ItemBuilder tracker = new ItemBuilder(Material.COMPASS);
+			tracker.setName(ChatColor.GOLD + "" + ChatColor.BOLD + "Tracker compass");
+			tracker.addLore(ChatColor.WHITE + "Points to the closest player");
+			player.getInventory().addItem(tracker.build());
+		}
+
 		new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -358,6 +399,10 @@ public class TNTTag extends MapGame implements Listener {
 		this.config = cfg;
 
 		world.setDifficulty(Difficulty.PEACEFUL);
+
+		if (getConfig().isEnableTrackers()) {
+			ModuleManager.require(CompassTracker.class);
+		}
 
 		List<Player> toTeleport = new ArrayList<Player>();
 
@@ -397,6 +442,7 @@ public class TNTTag extends MapGame implements Listener {
 
 		Task.tryStartTask(timerTask);
 		Task.tryStartTask(messageTask);
+		Task.tryStartTask(particleTask);
 
 		started = true;
 		startRoundWait();
@@ -413,6 +459,7 @@ public class TNTTag extends MapGame implements Listener {
 
 		Task.tryStopTask(timerTask);
 		Task.tryStopTask(messageTask);
+		Task.tryStopTask(particleTask);
 
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
