@@ -28,6 +28,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -94,11 +95,11 @@ public class TNTTag extends MapGame implements Listener {
 		this.config = null;
 
 		ItemBuilder tntBuilder1 = ItemBuilder.getPlayerSkullWithBase64TextureAsBuilder(TNTTagTextures.TNT_TEXTURED);
-		tntBuilder1.setName(ChatColor.RED + "TNT");
+		tntBuilder1.setName(ChatColor.RED + "Tagged");
 		tntBuilder1.addLore(ChatColor.RED + "RUUUUUUUUUN!!!!!!!!");
 
 		ItemBuilder tntBuilder2 = ItemBuilder.getPlayerSkullWithBase64TextureAsBuilder(TNTTagTextures.TNT_WHITE);
-		tntBuilder2.setName(ChatColor.RED + "TNT");
+		tntBuilder2.setName(ChatColor.RED + "Tagged");
 		tntBuilder2.addLore(ChatColor.RED + "RUUUUUUUUUN!!!!!!!!");
 
 		tntHeadTextured = tntBuilder1.build();
@@ -129,11 +130,13 @@ public class TNTTag extends MapGame implements Listener {
 					if (players.contains(player.getUniqueId())) {
 						if (taggedPlayers.contains(player.getUniqueId())) {
 							player.getInventory().setHelmet(tntTextureToUse ? tntHeadTextured.clone() : tntHeadWhite.clone());
+							player.getInventory().setItem(4, tntTextureToUse ? tntHeadTextured.clone() : tntHeadWhite.clone());
 
 							VersionIndependantUtils.get().sendActionBarMessage(player, ChatColor.RED + TextUtils.ICON_WARNING + " Tagged " + TextUtils.ICON_WARNING);
 						} else {
 							VersionIndependantUtils.get().sendActionBarMessage(player, ChatColor.GREEN + "Safe");
 							player.getInventory().setHelmet(ItemBuilder.AIR);
+							player.getInventory().setItem(4, ItemBuilder.AIR);
 						}
 					}
 				});
@@ -414,7 +417,7 @@ public class TNTTag extends MapGame implements Listener {
 			}
 		});
 
-		Collections.shuffle(toTeleport);
+		Collections.shuffle(toTeleport, getRandom());
 
 		List<Location> toUse = new ArrayList<Location>();
 		while (toTeleport.size() > 0) {
@@ -423,7 +426,7 @@ public class TNTTag extends MapGame implements Listener {
 					toUse.add(location);
 				}
 
-				Collections.shuffle(toUse);
+				Collections.shuffle(toUse, getRandom());
 			}
 
 			if (toUse.size() == 0) {
@@ -530,6 +533,15 @@ public class TNTTag extends MapGame implements Listener {
 	public void onBlockBreak(BlockBreakEvent e) {
 		if (hasStarted()) {
 			if (e.getPlayer().getGameMode() != GameMode.CREATIVE) {
+				e.setCancelled(true);
+			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onInventoryClick(InventoryClickEvent e) {
+		if (started && !ended) {
+			if (e.getWhoClicked().getGameMode() != GameMode.CREATIVE) {
 				e.setCancelled(true);
 			}
 		}
