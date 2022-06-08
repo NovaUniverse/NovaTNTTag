@@ -41,8 +41,8 @@ import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.commons.utils.TextUtils;
 import net.zeeraa.novacore.spigot.NovaCore;
-import net.zeeraa.novacore.spigot.abstraction.VersionIndependantUtils;
-import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependantSound;
+import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
+import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.MapGame;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerEliminationReason;
@@ -112,7 +112,7 @@ public class TNTTag extends MapGame implements Listener {
 					if (roundTimer > 1) {
 						roundTimer--;
 						if (roundTimer == 10) {
-							Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependantUtils.get().sendTitle(player, "", ChatColor.YELLOW + TextUtils.ICON_WARNING + " 10 seconds remaining " + TextUtils.ICON_WARNING, 10, 40, 10));
+							Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, "", ChatColor.YELLOW + TextUtils.ICON_WARNING + " 10 seconds remaining " + TextUtils.ICON_WARNING, 10, 40, 10));
 						}
 					} else {
 						roundTimer = 0;
@@ -132,9 +132,9 @@ public class TNTTag extends MapGame implements Listener {
 							player.getInventory().setHelmet(tntTextureToUse ? tntHeadTextured.clone() : tntHeadWhite.clone());
 							player.getInventory().setItem(4, tntTextureToUse ? tntHeadTextured.clone() : tntHeadWhite.clone());
 
-							VersionIndependantUtils.get().sendActionBarMessage(player, ChatColor.RED + TextUtils.ICON_WARNING + " Tagged " + TextUtils.ICON_WARNING);
+							VersionIndependentUtils.get().sendActionBarMessage(player, ChatColor.RED + TextUtils.ICON_WARNING + " Tagged " + TextUtils.ICON_WARNING);
 						} else {
-							VersionIndependantUtils.get().sendActionBarMessage(player, ChatColor.GREEN + "Safe");
+							VersionIndependentUtils.get().sendActionBarMessage(player, ChatColor.GREEN + "Safe");
 							player.getInventory().setHelmet(ItemBuilder.AIR);
 							player.getInventory().setItem(4, ItemBuilder.AIR);
 						}
@@ -238,7 +238,7 @@ public class TNTTag extends MapGame implements Listener {
 			if (player != null) {
 				player.setGameMode(GameMode.SPECTATOR);
 
-				VersionIndependantSound.EXPLODE.playAtLocation(player.getLocation());
+				VersionIndependentSound.EXPLODE.playAtLocation(player.getLocation());
 				player.getWorld().playEffect(player.getLocation(), Effect.EXPLOSION_HUGE, 10, 1);
 			}
 		});
@@ -326,8 +326,8 @@ public class TNTTag extends MapGame implements Listener {
 
 		taggedPlayers.remove(player.getUniqueId());
 		player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are no longer tagged");
-		VersionIndependantUtils.get().sendTitle(player, "", ChatColor.GREEN + "No longer tagged", 0, 10, 5);
-		VersionIndependantSound.ORB_PICKUP.play(player, 0.5F, 1.5F);
+		VersionIndependentUtils.get().sendTitle(player, "", ChatColor.GREEN + "No longer tagged", 0, 10, 5);
+		VersionIndependentSound.ORB_PICKUP.play(player, 0.5F, 1.5F);
 	}
 
 	public void tagPlayer(Player player, @Nullable Player attacker) {
@@ -341,8 +341,8 @@ public class TNTTag extends MapGame implements Listener {
 
 		taggedPlayers.add(player.getUniqueId());
 		player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You have been tagged");
-		VersionIndependantUtils.get().sendTitle(player, ChatColor.RED + TextUtils.ICON_WARNING + " Tagged " + TextUtils.ICON_WARNING, "", 0, 10, 5);
-		VersionIndependantSound.ITEM_BREAK.play(player, 0.5F, 1.2F);
+		VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + TextUtils.ICON_WARNING + " Tagged " + TextUtils.ICON_WARNING, "", 0, 10, 5);
+		VersionIndependentSound.ITEM_BREAK.play(player, 0.5F, 1.2F);
 	}
 
 	public void tpToSpectator(Player player) {
@@ -480,7 +480,7 @@ public class TNTTag extends MapGame implements Listener {
 			PlayerUtils.clearPlayerInventory(player);
 			PlayerUtils.resetPlayerXP(player);
 			player.setGameMode(GameMode.SPECTATOR);
-			VersionIndependantUtils.get().playSound(player, player.getLocation(), VersionIndependantSound.WITHER_DEATH, 1F, 1F);
+			VersionIndependentUtils.get().playSound(player, player.getLocation(), VersionIndependentSound.WITHER_DEATH, 1F, 1F);
 		});
 
 		ended = true;
