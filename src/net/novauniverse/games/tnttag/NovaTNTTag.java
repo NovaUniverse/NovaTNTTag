@@ -34,6 +34,8 @@ public class NovaTNTTag extends JavaPlugin implements Listener {
 
 	private boolean allowReconnect;
 	private int reconnectTime;
+	
+	private boolean disableDefaultEndSound;
 
 	private TNTTag game;
 
@@ -49,6 +51,14 @@ public class NovaTNTTag extends JavaPlugin implements Listener {
 		return game;
 	}
 
+	public boolean isDisableDefaultEndSound() {
+		return disableDefaultEndSound;
+	}
+	
+	public void setDisableDefaultEndSound(boolean disableDefaultEndSound) {
+		this.disableDefaultEndSound = disableDefaultEndSound;
+	}
+
 	@Override
 	public void onEnable() {
 		NovaTNTTag.instance = this;
@@ -57,6 +67,8 @@ public class NovaTNTTag extends JavaPlugin implements Listener {
 
 		allowReconnect = getConfig().getBoolean("allow_reconnect");
 		reconnectTime = getConfig().getInt("player_elimination_delay");
+		
+		disableDefaultEndSound = getConfig().getBoolean("disable_default_end_sound");
 
 		// Create files and folders
 		File mapFolder = new File(this.getDataFolder().getPath() + File.separator + "Maps");
