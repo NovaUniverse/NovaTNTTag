@@ -422,9 +422,7 @@ public class TNTTag extends MapGame implements Listener {
 		List<Location> toUse = new ArrayList<Location>();
 		while (toTeleport.size() > 0) {
 			if (toUse.size() == 0) {
-				for (Location location : getActiveMap().getStarterLocations()) {
-					toUse.add(location);
-				}
+				getActiveMap().getStarterLocations().forEach(toUse::add);
 
 				Collections.shuffle(toUse, getRandom());
 			}
