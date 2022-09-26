@@ -32,6 +32,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import net.novauniverse.games.tnttag.NovaTNTTag;
@@ -84,8 +86,8 @@ public class TNTTag extends MapGame implements Listener {
 
 		this.started = false;
 		this.ended = false;
-		this.taggedPlayers = new ArrayList<UUID>();
-		this.taggedBy = new HashMap<UUID, UUID>();
+		this.taggedPlayers = new ArrayList<>();
+		this.taggedBy = new HashMap<>();
 
 		this.tntTextureToUse = false;
 
@@ -105,56 +107,46 @@ public class TNTTag extends MapGame implements Listener {
 		tntHeadTextured = tntBuilder1.build();
 		tntHeadWhite = tntBuilder2.build();
 
-		this.timerTask = new SimpleTask(getPlugin(), new Runnable() {
-			@Override
-			public void run() {
-				if (roundActive) {
-					if (roundTimer > 1) {
-						roundTimer--;
-						if (roundTimer == 10) {
-							Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, "", ChatColor.YELLOW + TextUtils.ICON_WARNING + " 10 seconds remaining " + TextUtils.ICON_WARNING, 10, 40, 10));
-						}
-					} else {
-						roundTimer = 0;
-						endRound();
+
+		this.timerTask = new SimpleTask(getPlugin(), () -> {
+			if (roundActive) {
+				if (roundTimer > 1) {
+					roundTimer--;
+					if (roundTimer == 10) {
+						Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, "", ChatColor.YELLOW + TextUtils.ICON_WARNING + " 10 seconds remaining " + TextUtils.ICON_WARNING, 10, 40, 10));
 					}
+				} else {
+					roundTimer = 0;
+					endRound();
 				}
 			}
 		}, 20L);
 
-		this.messageTask = new SimpleTask(getPlugin(), new Runnable() {
-			@Override
-			public void run() {
-				tntTextureToUse = !tntTextureToUse;
-				Bukkit.getServer().getOnlinePlayers().forEach(player -> {
-					if (players.contains(player.getUniqueId())) {
-						if (taggedPlayers.contains(player.getUniqueId())) {
-							player.getInventory().setHelmet(tntTextureToUse ? tntHeadTextured.clone() : tntHeadWhite.clone());
-							player.getInventory().setItem(4, tntTextureToUse ? tntHeadTextured.clone() : tntHeadWhite.clone());
+		this.messageTask = new SimpleTask(getPlugin(), () -> {
+			tntTextureToUse = !tntTextureToUse;
+			Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+				if (players.contains(player.getUniqueId())) {
+					if (taggedPlayers.contains(player.getUniqueId())) {
+						player.getInventory().setHelmet(tntTextureToUse ? tntHeadTextured.clone() : tntHeadWhite.clone());
+						player.getInventory().setItem(4, tntTextureToUse ? tntHeadTextured.clone() : tntHeadWhite.clone());
 
-							VersionIndependentUtils.get().sendActionBarMessage(player, ChatColor.RED + TextUtils.ICON_WARNING + " Tagged " + TextUtils.ICON_WARNING);
-						} else {
-							VersionIndependentUtils.get().sendActionBarMessage(player, ChatColor.GREEN + "Safe");
-							player.getInventory().setHelmet(ItemBuilder.AIR);
-							player.getInventory().setItem(4, ItemBuilder.AIR);
-						}
+						VersionIndependentUtils.get().sendActionBarMessage(player, ChatColor.RED + TextUtils.ICON_WARNING + " Tagged " + TextUtils.ICON_WARNING);
+					} else {
+						VersionIndependentUtils.get().sendActionBarMessage(player, ChatColor.GREEN + "Safe");
+						player.getInventory().setHelmet(ItemBuilder.AIR);
+						player.getInventory().setItem(4, ItemBuilder.AIR);
 					}
-				});
-			}
+				}
+			});
 		}, 10L);
 
-		this.particleTask = new SimpleTask(getPlugin(), new Runnable() {
-			@Override
-			public void run() {
-				taggedPlayers.forEach(uuid -> {
-					Player player = Bukkit.getServer().getPlayer(uuid);
-					if (player != null) {
-						Location location = player.getLocation().clone().add(0, player.getEyeHeight(false) + TNT_PARTICLE_OFFSET, 0);
-						ParticleEffect.SMOKE_NORMAL.display(location);
-					}
-				});
+		this.particleTask = new SimpleTask(getPlugin(), () -> taggedPlayers.forEach(uuid -> {
+			Player player = Bukkit.getServer().getPlayer(uuid);
+			if (player != null) {
+				Location location = player.getLocation().clone().add(0, player.getEyeHeight(false) + TNT_PARTICLE_OFFSET, 0);
+				ParticleEffect.SMOKE_NORMAL.display(location);
 			}
-		}, 3L);
+		}), 3L);
 	}
 
 	public boolean isRoundActive() {
@@ -314,7 +306,7 @@ public class TNTTag extends MapGame implements Listener {
 			public void run() {
 				startRound();
 			}
-		}.runTaskLater(getPlugin(), time * 20);
+		}.runTaskLater(getPlugin(), time * 20L);
 	}
 
 	public void untagPlayer(Player player) {
@@ -328,6 +320,7 @@ public class TNTTag extends MapGame implements Listener {
 		player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are no longer tagged");
 		VersionIndependentUtils.get().sendTitle(player, "", ChatColor.GREEN + "No longer tagged", 0, 10, 5);
 		VersionIndependentSound.ORB_PICKUP.play(player, 0.5F, 1.5F);
+		player.removePotionEffect(PotionEffectType.SPEED);
 	}
 
 	public void tagPlayer(Player player, @Nullable Player attacker) {
@@ -343,6 +336,8 @@ public class TNTTag extends MapGame implements Listener {
 		player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You have been tagged");
 		VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + TextUtils.ICON_WARNING + " Tagged " + TextUtils.ICON_WARNING, "", 0, 10, 5);
 		VersionIndependentSound.ITEM_BREAK.play(player, 0.5F, 1.2F);
+		PotionEffect speed = new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1, false, false);
+		player.addPotionEffect(speed);
 	}
 
 	public void tpToSpectator(Player player) {
