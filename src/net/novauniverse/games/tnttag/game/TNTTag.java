@@ -107,7 +107,6 @@ public class TNTTag extends MapGame implements Listener {
 		tntHeadTextured = tntBuilder1.build();
 		tntHeadWhite = tntBuilder2.build();
 
-
 		this.timerTask = new SimpleTask(getPlugin(), () -> {
 			if (roundActive) {
 				if (roundTimer > 1) {
@@ -320,7 +319,9 @@ public class TNTTag extends MapGame implements Listener {
 		player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are no longer tagged");
 		VersionIndependentUtils.get().sendTitle(player, "", ChatColor.GREEN + "No longer tagged", 0, 10, 5);
 		VersionIndependentSound.ORB_PICKUP.play(player, 0.5F, 1.5F);
-		player.removePotionEffect(PotionEffectType.SPEED);
+		if (config.isEnableSpeed()) {
+			player.removePotionEffect(PotionEffectType.SPEED);
+		}
 	}
 
 	public void tagPlayer(Player player, @Nullable Player attacker) {
@@ -337,7 +338,9 @@ public class TNTTag extends MapGame implements Listener {
 		VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + TextUtils.ICON_WARNING + " Tagged " + TextUtils.ICON_WARNING, "", 0, 10, 5);
 		VersionIndependentSound.ITEM_BREAK.play(player, 0.5F, 1.2F);
 		PotionEffect speed = new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1, false, false);
-		player.addPotionEffect(speed);
+		if (config.isEnableSpeed()) {
+			player.addPotionEffect(speed);
+		}
 	}
 
 	public void tpToSpectator(Player player) {

@@ -11,6 +11,8 @@ public class TNTTagConfigMapModule extends MapModule {
 
 	private boolean enableTrackers;
 
+	private boolean enableSpeed;
+
 	public TNTTagConfigMapModule(JSONObject json) {
 		super(json);
 		if (json.has("round_time")) {
@@ -36,6 +38,12 @@ public class TNTTagConfigMapModule extends MapModule {
 		} else {
 			this.enableTrackers = true;
 		}
+
+		if (json.has("enable_speed")) {
+			this.enableSpeed = json.getBoolean("enable_speed");
+		} else {
+			this.enableSpeed = true;
+		}
 	}
 
 	public int getRoundWaitingTime() {
@@ -52,5 +60,9 @@ public class TNTTagConfigMapModule extends MapModule {
 
 	public boolean isEnableTrackers() {
 		return enableTrackers;
+	}
+
+	public boolean isEnableSpeed() {
+		return enableSpeed;
 	}
 }
