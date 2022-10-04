@@ -319,8 +319,11 @@ public class TNTTag extends MapGame implements Listener {
 		player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are no longer tagged");
 		VersionIndependentUtils.get().sendTitle(player, "", ChatColor.GREEN + "No longer tagged", 0, 10, 5);
 		VersionIndependentSound.ORB_PICKUP.play(player, 0.5F, 1.5F);
+
 		if (config.isEnableSpeed()) {
+			PotionEffect speed = new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 0, false, false);
 			player.removePotionEffect(PotionEffectType.SPEED);
+			player.addPotionEffect(speed);
 		}
 	}
 
@@ -337,8 +340,10 @@ public class TNTTag extends MapGame implements Listener {
 		player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You have been tagged");
 		VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + TextUtils.ICON_WARNING + " Tagged " + TextUtils.ICON_WARNING, "", 0, 10, 5);
 		VersionIndependentSound.ITEM_BREAK.play(player, 0.5F, 1.2F);
-		PotionEffect speed = new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1, false, false);
+
 		if (config.isEnableSpeed()) {
+			PotionEffect speed = new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1, false, false);
+			player.removePotionEffect(PotionEffectType.SPEED);
 			player.addPotionEffect(speed);
 		}
 	}
