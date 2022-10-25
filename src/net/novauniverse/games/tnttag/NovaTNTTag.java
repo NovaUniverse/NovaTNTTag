@@ -19,6 +19,7 @@ import net.novauniverse.games.tnttag.game.mapmodule.config.TNTTagConfigMapModule
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.utils.JSONFileUtils;
 import net.zeeraa.novacore.spigot.abstraction.events.VersionIndependentPlayerAchievementAwardedEvent;
+import net.zeeraa.novacore.spigot.gameengine.NovaCoreGameEngine;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameManager;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.map.mapmodule.MapModuleManager;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.mapselector.selectors.guivoteselector.GUIMapVote;
@@ -74,6 +75,13 @@ public class NovaTNTTag extends JavaPlugin implements Listener {
 		File mapFolder = new File(this.getDataFolder().getPath() + File.separator + "Maps");
 		File worldFolder = new File(this.getDataFolder().getPath() + File.separator + "Worlds");
 
+
+
+		if (NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory() != null) {
+			mapFolder = new File(NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory().getAbsolutePath() + File.separator + getName() + File.separator + "Maps");
+			worldFolder = new File(NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory().getAbsolutePath() + File.separator + getName() + File.separator + "Worlds");
+		}
+		
 		File mapOverrides = new File(this.getDataFolder().getPath() + File.separator + "map_overrides.json");
 		if (mapOverrides.exists()) {
 			Log.info(getName(), "Trying to read map overrides file");
