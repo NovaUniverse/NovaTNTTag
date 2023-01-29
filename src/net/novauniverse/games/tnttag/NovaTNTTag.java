@@ -35,7 +35,7 @@ public class NovaTNTTag extends JavaPlugin implements Listener {
 
 	private boolean allowReconnect;
 	private int reconnectTime;
-	
+
 	private boolean disableDefaultEndSound;
 
 	private TNTTag game;
@@ -55,7 +55,7 @@ public class NovaTNTTag extends JavaPlugin implements Listener {
 	public boolean isDisableDefaultEndSound() {
 		return disableDefaultEndSound;
 	}
-	
+
 	public void setDisableDefaultEndSound(boolean disableDefaultEndSound) {
 		this.disableDefaultEndSound = disableDefaultEndSound;
 	}
@@ -68,20 +68,18 @@ public class NovaTNTTag extends JavaPlugin implements Listener {
 
 		allowReconnect = getConfig().getBoolean("allow_reconnect");
 		reconnectTime = getConfig().getInt("player_elimination_delay");
-		
+
 		disableDefaultEndSound = getConfig().getBoolean("disable_default_end_sound");
 
 		// Create files and folders
 		File mapFolder = new File(this.getDataFolder().getPath() + File.separator + "Maps");
 		File worldFolder = new File(this.getDataFolder().getPath() + File.separator + "Worlds");
 
-
-
 		if (NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory() != null) {
 			mapFolder = new File(NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory().getAbsolutePath() + File.separator + getName() + File.separator + "Maps");
 			worldFolder = new File(NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory().getAbsolutePath() + File.separator + getName() + File.separator + "Worlds");
 		}
-		
+
 		File mapOverrides = new File(this.getDataFolder().getPath() + File.separator + "map_overrides.json");
 		if (mapOverrides.exists()) {
 			Log.info(getName(), "Trying to read map overrides file");
@@ -133,8 +131,8 @@ public class NovaTNTTag extends JavaPlugin implements Listener {
 		Bukkit.getServer().getPluginManager().registerEvents(mapSelector, this);
 
 		// Read maps
-		Log.info(getName(), "Loading maps from " + mapFolder.getPath());
-		GameManager.getInstance().readMapsFromFolder(mapFolder, worldFolder);
+		Log.info(getName(), "Scheduled loading maps from " + mapFolder.getPath());
+		GameManager.getInstance().readMapsFromFolderDelayed(mapFolder, worldFolder);
 	}
 
 	@Override
