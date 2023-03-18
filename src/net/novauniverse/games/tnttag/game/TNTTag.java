@@ -45,6 +45,7 @@ import net.zeeraa.novacore.commons.utils.TextUtils;
 import net.zeeraa.novacore.spigot.NovaCore;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
+import net.zeeraa.novacore.spigot.abstraction.particle.NovaParticleEffect;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.MapGame;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerEliminationReason;
@@ -143,7 +144,7 @@ public class TNTTag extends MapGame implements Listener {
 			Player player = Bukkit.getServer().getPlayer(uuid);
 			if (player != null) {
 				Location location = player.getLocation().clone().add(0, player.getEyeHeight(false) + TNT_PARTICLE_OFFSET, 0);
-				ParticleEffect.SMOKE_NORMAL.display(location);
+				NovaCore.getInstance().getNovaParticleProvider().showParticle(location, NovaParticleEffect.SMOKE_NORMAL);
 			}
 		}), 3L);
 	}
