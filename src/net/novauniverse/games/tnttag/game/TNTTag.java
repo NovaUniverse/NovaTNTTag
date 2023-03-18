@@ -56,7 +56,6 @@ import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
 import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
-import xyz.xenondevs.particle.ParticleEffect;
 
 public class TNTTag extends MapGame implements Listener {
 	public static final double TNT_PARTICLE_OFFSET = 0.2;
