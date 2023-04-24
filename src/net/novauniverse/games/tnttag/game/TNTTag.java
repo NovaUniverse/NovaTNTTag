@@ -38,6 +38,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import net.novauniverse.games.tnttag.NovaTNTTag;
 import net.novauniverse.games.tnttag.game.event.PlayerKilledPlayerInTNTTagEvent;
+import net.novauniverse.games.tnttag.game.event.TNTTagCountdownEvent;
+import net.novauniverse.games.tnttag.game.event.TNTTagPlayerTaggedEvent;
+import net.novauniverse.games.tnttag.game.event.TNTTagRoundEndEvent;
+import net.novauniverse.games.tnttag.game.event.TNTTagRoundStartEvent;
 import net.novauniverse.games.tnttag.game.mapmodule.config.TNTTagConfigMapModule;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
@@ -110,10 +114,11 @@ public class TNTTag extends MapGame implements Listener {
 		this.timerTask = new SimpleTask(getPlugin(), () -> {
 			if (roundActive) {
 				if (roundTimer > 1) {
-					roundTimer--;
+					Bukkit.getServer().getPluginManager().callEvent(new TNTTagCountdownEvent(roundTimer));
 					if (roundTimer == 10) {
 						Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, "", ChatColor.YELLOW + TextUtils.ICON_WARNING + " 10 seconds remaining " + TextUtils.ICON_WARNING, 10, 40, 10));
 					}
+					roundTimer--;
 				} else {
 					roundTimer = 0;
 					endRound();
@@ -221,18 +226,22 @@ public class TNTTag extends MapGame implements Listener {
 
 		roundActive = false;
 
+		VersionIndependentSound.EXPLODE.broadcast();
+
+		List<UUID> eliminatedPlayers = new ArrayList<>();
+
 		taggedPlayers.forEach(uuid -> {
 			OfflinePlayer offlinePlayer = Bukkit.getServer().getOfflinePlayer(uuid);
 			this.eliminatePlayer(offlinePlayer, null, PlayerEliminationReason.DEATH);
+			eliminatedPlayers.add(uuid);
 
 			Player player = Bukkit.getServer().getPlayer(uuid);
 			if (player != null) {
 				player.setGameMode(GameMode.SPECTATOR);
-
-				VersionIndependentSound.EXPLODE.playAtLocation(player.getLocation());
 				player.getWorld().playEffect(player.getLocation(), Effect.EXPLOSION_HUGE, 10, 1);
 			}
 		});
+
 		int eliminated = taggedPlayers.size();
 		taggedPlayers.clear();
 
@@ -247,6 +256,8 @@ public class TNTTag extends MapGame implements Listener {
 		taggedBy.clear();
 
 		Bukkit.getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + eliminated + " player" + (eliminated == 1 ? "" : "s") + " eliminated this round");
+
+		Bukkit.getServer().getPluginManager().callEvent(new TNTTagRoundEndEvent(eliminatedPlayers));
 
 		new BukkitRunnable() {
 			@Override
@@ -285,8 +296,11 @@ public class TNTTag extends MapGame implements Listener {
 
 		Collections.shuffle(onlinePlayers, getRandom());
 
+		List<Player> newTaggedPlayers = new ArrayList<>();
+
 		for (int i = 0; i < toTag; i++) {
 			Player player = onlinePlayers.remove(0);
+			newTaggedPlayers.add(player);
 			tagPlayer(player, null);
 		}
 
@@ -294,6 +308,8 @@ public class TNTTag extends MapGame implements Listener {
 
 		roundTimer = getConfig().getRoundTime();
 		roundActive = true;
+
+		Bukkit.getServer().getPluginManager().callEvent(new TNTTagRoundStartEvent(newTaggedPlayers, roundTimer));
 	}
 
 	public void startRoundWait() {
@@ -346,6 +362,8 @@ public class TNTTag extends MapGame implements Listener {
 			player.removePotionEffect(PotionEffectType.SPEED);
 			player.addPotionEffect(speed);
 		}
+
+		Bukkit.getServer().getPluginManager().callEvent(new TNTTagPlayerTaggedEvent(player, attacker));
 	}
 
 	public void tpToSpectator(Player player) {
