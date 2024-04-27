@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Difficulty;
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
@@ -57,6 +58,9 @@ import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.Pla
 import net.zeeraa.novacore.spigot.module.ModuleManager;
 import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
+import net.zeeraa.novacore.spigot.teams.Team;
+import net.zeeraa.novacore.spigot.teams.TeamManager;
+import net.zeeraa.novacore.spigot.utils.ChatColorRGBMapper;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
 import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
@@ -398,6 +402,18 @@ public class TNTTag extends MapGame implements Listener {
 			tracker.addLore(ChatColor.WHITE + "Points to the closest player");
 			player.getInventory().addItem(tracker.build());
 		}
+
+		Color color = Color.WHITE;
+		if (TeamManager.hasTeamManager()) {
+			Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+			if (team != null) {
+				color = ChatColorRGBMapper.chatColorToRGBColorData(team.getTeamColor()).toBukkitColor();
+			}
+		}
+
+		player.getInventory().setChestplate(new ItemBuilder(Material.LEATHER_CHESTPLATE).setLeatherArmorColor(color).build());
+		player.getInventory().setLeggings(new ItemBuilder(Material.LEATHER_LEGGINGS).setLeatherArmorColor(color).build());
+		player.getInventory().setBoots(new ItemBuilder(Material.LEATHER_BOOTS).setLeatherArmorColor(color).build());
 
 		new BukkitRunnable() {
 			@Override
