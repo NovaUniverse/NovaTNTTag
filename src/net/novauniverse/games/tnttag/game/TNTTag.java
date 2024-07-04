@@ -72,6 +72,7 @@ public class TNTTag extends MapGame implements Listener {
 	private boolean ended;
 
 	private List<UUID> taggedPlayers;
+	private List<UUID> lastRoundTaggedPlayers;
 
 	private Map<UUID, UUID> taggedBy;
 
@@ -95,6 +96,7 @@ public class TNTTag extends MapGame implements Listener {
 		this.started = false;
 		this.ended = false;
 		this.taggedPlayers = new ArrayList<>();
+		this.lastRoundTaggedPlayers = new ArrayList<UUID>();
 		this.taggedBy = new HashMap<>();
 
 		this.tntTextureToUse = false;
@@ -300,14 +302,38 @@ public class TNTTag extends MapGame implements Listener {
 
 		Collections.shuffle(onlinePlayers, getRandom());
 
+		// Players that where not tagged last round
+		List<Player> highPriorityPlayers = new ArrayList<Player>();
+
+		// Players tagged last round
+		List<Player> lowPriorityPlayers = new ArrayList<Player>();
+
+		onlinePlayers.forEach(p -> {
+			if (lastRoundTaggedPlayers.contains(p.getUniqueId())) {
+				lowPriorityPlayers.add(p);
+			} else {
+				highPriorityPlayers.add(p);
+			}
+		});
+
 		List<Player> newTaggedPlayers = new ArrayList<>();
 
-		for (int i = 0; i < toTag; i++) {
-			Player player = onlinePlayers.remove(0);
+		while(toTag > 0 && highPriorityPlayers.size() > 0) {
+			toTag--;
+			Player player = highPriorityPlayers.remove(0);
 			newTaggedPlayers.add(player);
-			tagPlayer(player, null);
 		}
-
+		
+		while(toTag > 0 && lowPriorityPlayers.size() > 0) {
+			toTag--;
+			Player player = lowPriorityPlayers.remove(0);
+			newTaggedPlayers.add(player);
+		}
+		
+		lastRoundTaggedPlayers.clear();
+		newTaggedPlayers.forEach(this::tagPlayer);
+		newTaggedPlayers.forEach(p -> lastRoundTaggedPlayers.add(p.getUniqueId()));
+		
 		Bukkit.getServer().broadcastMessage(ChatColor.GOLD + "" + ChatColor.BOLD + toTag + " player" + (toTag == 1 ? "" : "s") + " tagged");
 
 		roundTimer = getConfig().getRoundTime();
@@ -345,6 +371,10 @@ public class TNTTag extends MapGame implements Listener {
 			player.removePotionEffect(PotionEffectType.SPEED);
 			player.addPotionEffect(speed);
 		}
+	}
+	
+	public void tagPlayer(Player player) {
+		this.tagPlayer(player, null);
 	}
 
 	public void tagPlayer(Player player, @Nullable Player attacker) {
